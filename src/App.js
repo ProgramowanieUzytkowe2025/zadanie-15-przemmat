@@ -2,14 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './App.css';
 
-// --- POMOCNICZE FUNKCJE MATEMATYCZNE ---
 
-// Obliczanie odległości euklidesowej
+
+
 const calculateDistance = (p1, p2) => {
   return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
 };
 
-// Obliczanie całkowitej długości ścieżki
+
 const calculateTotalDistance = (path, nodes) => {
   let total = 0;
   for (let i = 0; i < path.length - 1; i++) {
@@ -17,7 +17,7 @@ const calculateTotalDistance = (path, nodes) => {
     const p2 = nodes.find(n => n.id === path[i + 1]);
     if (p1 && p2) total += calculateDistance(p1, p2);
   }
-  // Dodanie powrotu do punktu startowego (TSP to cykl)
+
   const last = nodes.find(n => n.id === path[path.length - 1]);
   const first = nodes.find(n => n.id === path[0]);
   if (last && first) total += calculateDistance(last, first);
@@ -25,7 +25,7 @@ const calculateTotalDistance = (path, nodes) => {
   return total;
 };
 
-// Algorytm tasowania Fisher-Yates (do losowania permutacji)
+
 const shuffleArray = (array) => {
   const newArr = [...array];
   for (let i = newArr.length - 1; i > 0; i--) {
@@ -35,9 +35,6 @@ const shuffleArray = (array) => {
   return newArr;
 };
 
-// --- KOMPONENTY UI ---
-
-// 1. Wczytywanie pliku
 const FileUploader = ({ onDataLoaded }) => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -50,7 +47,7 @@ const FileUploader = ({ onDataLoaded }) => {
       const nodes = [];
       let readingCoord = false;
 
-      // Prosty parser formatu TSPLIB (np. berlin52)
+
       lines.forEach(line => {
         const cleanLine = line.trim();
         if (cleanLine === 'NODE_COORD_SECTION') {
@@ -83,11 +80,11 @@ const FileUploader = ({ onDataLoaded }) => {
   );
 };
 
-// 2. i 6. Wizualizacja Problemu
+
 const MapVisualizer = ({ nodes, path, showPath }) => {
   if (nodes.length === 0) return null;
 
-  // Obliczanie skali dla SVG
+
   const xs = nodes.map(n => n.x);
   const ys = nodes.map(n => n.y);
   const minX = Math.min(...xs);
@@ -103,7 +100,7 @@ const MapVisualizer = ({ nodes, path, showPath }) => {
     <div className="component-box">
       <div className="header">Wizualizacja problemu</div>
       <svg viewBox={`${minX - padding} ${minY - padding} ${width} ${height}`} style={{ border: '1px solid #ccc', width: '100%', maxHeight: '400px' }}>
-        {/* Rysowanie ścieżki */}
+
         {showPath && path.length > 0 && (
           <polyline
             points={[...path, path[0]].map(id => {
@@ -116,7 +113,7 @@ const MapVisualizer = ({ nodes, path, showPath }) => {
           />
         )}
         
-        {/* Rysowanie punktów */}
+
         {nodes.map(node => (
           <circle key={node.id} cx={node.x} cy={node.y} r={width / 150} fill="red" />
         ))}
@@ -125,7 +122,7 @@ const MapVisualizer = ({ nodes, path, showPath }) => {
   );
 };
 
-// 3. Wyświetlanie rozwiązania
+
 const SolutionDisplay = ({ path, distance }) => {
   return (
     <div className="component-box">
@@ -138,7 +135,7 @@ const SolutionDisplay = ({ path, distance }) => {
   );
 };
 
-// 5. Wykres liniowy
+
 const OptimizationChart = ({ history }) => {
   return (
     <div className="component-box">
@@ -147,10 +144,22 @@ const OptimizationChart = ({ history }) => {
         <ResponsiveContainer>
           <LineChart data={history}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="iteration" label={{ value: 'Iteracje', position: 'insideBottomRight', offset: -5 }} />
+           <XAxis 
+  dataKey="iteration" 
+  type="number" 
+  allowDecimals={false} 
+  domain={['dataMin', 'dataMax']} 
+/>
             <YAxis label={{ value: 'Dystans', angle: -90, position: 'insideLeft' }} />
             <Tooltip />
-            <Line type="monotone" dataKey="distance" stroke="#8884d8" dot={false} isAnimationActive={false} />
+
+<Line 
+  type="linear"          
+  dataKey="distance" 
+  stroke="#8884d8" 
+  dot={false}         
+  isAnimationActive={false} 
+/>
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -158,13 +167,12 @@ const OptimizationChart = ({ history }) => {
   );
 };
 
-// --- GŁÓWNY KOMPONENT APP ---
 
 function App() {
   const [nodes, setNodes] = useState([]);
   const [currentPath, setCurrentPath] = useState([]);
   const [bestDistance, setBestDistance] = useState(0);
-  
+  const iterationRef = useRef(0);
   const [isRunning, setIsRunning] = useState(false);
   const [iteration, setIteration] = useState(0);
   const [history, setHistory] = useState([]);
@@ -172,11 +180,9 @@ function App() {
   
   const intervalRef = useRef(null);
 
-  // Inicjalizacja po wczytaniu danych
   const handleDataLoaded = (loadedNodes) => {
     setNodes(loadedNodes);
     const initialPath = loadedNodes.map(n => n.id);
-    // Wstępne losowanie (zgodnie z pkt 3)
     const shuffledPath = shuffleArray(initialPath);
     const dist = calculateTotalDistance(shuffledPath, loadedNodes);
     
@@ -187,41 +193,41 @@ function App() {
     setShowSolutionOnMap(false);
   };
 
-  // 4. Logika Monte Carlo (usługa w tle)
   const toggleSimulation = () => {
     if (isRunning) {
-      // Zatrzymanie
       clearInterval(intervalRef.current);
       setIsRunning(false);
     } else {
-      // Start
       setIsRunning(true);
+      
+
+
       intervalRef.current = setInterval(() => {
-        setIteration(prevIter => {
-          const currentIter = prevIter + 1;
-          
-          // Losowanie nowego rozwiązania (Monte Carlo)
-          const newPath = shuffleArray(currentPath); // Bierzemy obecną jako bazę permutacji (w MC to czysty los)
-          const newDist = calculateTotalDistance(newPath, nodes);
+        iterationRef.current += 1;
+        const currentIter = iterationRef.current;
+        const baseIds = nodes.map(n => n.id); 
+        const newPath = shuffleArray(baseIds);
+        const newDist = calculateTotalDistance(newPath, nodes);
 
-          setBestDistance(prevDist => {
-            if (newDist < prevDist) {
-              setCurrentPath(newPath);
-              setHistory(prevHist => [...prevHist, { iteration: currentIter, distance: newDist }]);
-              return newDist;
-            } else {
-              setHistory(prevHist => [...prevHist, { iteration: currentIter, distance: prevDist }]);
-              return prevDist;
-            }
-          });
+        setIteration(currentIter);
 
-          return currentIter;
+        setHistory(prevHist => [
+          ...prevHist, 
+          { iteration: currentIter, distance: newDist }
+        ]);
+
+        setBestDistance(prevDist => {
+          if (newDist < prevDist) {
+            setCurrentPath(newPath);
+            return newDist;
+          }
+          return prevDist;
         });
-      }, 5000); // Co 5 sekund zgodnie z wymaganiem
+
+      }, 1000); 
     }
   };
 
-  // Czyszczenie interwału przy odmontowaniu
   useEffect(() => {
     return () => clearInterval(intervalRef.current);
   }, []);
@@ -230,13 +236,13 @@ function App() {
     <div className="App">
       <h1>Problem Komiwojażera (TSP)</h1>
       
-      {/* 1. Wczytywanie */}
+      
       <FileUploader onDataLoaded={handleDataLoaded} />
 
       {nodes.length > 0 && (
         <>
           <div className="grid-container">
-            {/* 2. Wizualizacja + 6. Przycisk Pokaż */}
+
             <div className="visualizer-wrapper">
               <MapVisualizer 
                 nodes={nodes} 
@@ -248,11 +254,11 @@ function App() {
               </button>
             </div>
 
-            {/* 3. Wyświetlanie danych liczbowych */}
+
             <SolutionDisplay path={currentPath} distance={bestDistance} />
           </div>
 
-          {/* 4. Panel Sterowania */}
+      
           <div className="control-panel component-box">
             <button 
               onClick={toggleSimulation} 
@@ -263,7 +269,6 @@ function App() {
             <span className="stats">Iteracje: {iteration}</span>
           </div>
 
-          {/* 5. Wykres */}
           <OptimizationChart history={history} />
         </>
       )}
