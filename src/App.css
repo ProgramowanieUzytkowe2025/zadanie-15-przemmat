@@ -1,0 +1,55 @@
+.App {
+  font-family: sans-serif;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.component-box {
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.header {
+  font-weight: bold;
+  font-size: 1.2em;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.path-text {
+  max-height: 100px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 0.9em;
+  background: #fff;
+  padding: 5px;
+  border: 1px solid #eee;
+  margin-bottom: 10px;
+  word-wrap: break-word;
+}
+
+.control-panel {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.btn-start { background-color: #4CAF50; color: white; border: none; }
+.btn-stop { background-color: #f44336; color: white; border: none; }
+.stats { font-weight: bold; }
